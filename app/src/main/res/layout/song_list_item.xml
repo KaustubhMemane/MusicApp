@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/song_list_item_bg"
+    android:orientation="horizontal"
+    android:padding="10dip">
+
+    <ImageView
+        android:id="@+id/img_listitem_file"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/no_clipart"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="0dp" />
+
+
+    <Button
+        android:focusable="false"
+        android:id="@+id/button"
+        android:layout_width="30dp"
+        android:layout_height="48dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="0dp"
+        android:layout_weight="1"
+        android:background="@mipmap/ic_launcher"
+        app:layout_constraintHorizontal_bias="0.944"
+        app:layout_constraintLeft_toRightOf="@+id/txt_listitem_filename"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txt_listitem_filename" />
+
+    <TextView
+        android:id="@+id/txt_listitem_filename"
+        style="@style/text_large_white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="4"
+        android:maxLines="1"
+        android:text="Dummy File"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@+id/img_listitem_file"
+        android:layout_marginTop="4dp"
+        app:layout_constraintLeft_toRightOf="@+id/img_listitem_file"
+        android:layout_marginLeft="18dp" />
+
+    <TextView
+        android:id="@+id/txt_listitem_albumname"
+        style="@style/text_small_gray"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="4dp"
+        android:maxLines="1"
+        app:layout_constraintBottom_toBottomOf="@+id/img_listitem_file"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="@+id/txt_listitem_filename"
+        app:layout_constraintRight_toRightOf="@+id/txt_listitem_filename"
+        app:layout_constraintTop_toBottomOf="@+id/txt_listitem_filename"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="Dummy Singer" />
+
+    <TextView
+        android:id="@+id/txt_listitem_duration"
+        style="@style/text_small_blue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="0dp"
+        android:gravity="right"
+        android:singleLine="true"
+        android:text="1:40"
+        app:layout_constraintHorizontal_bias="0.941"
+        app:layout_constraintLeft_toLeftOf="@+id/button"
+        app:layout_constraintRight_toRightOf="@+id/button"
+        app:layout_constraintTop_toBottomOf="@+id/img_listitem_file" />
+</android.support.constraint.ConstraintLayout>

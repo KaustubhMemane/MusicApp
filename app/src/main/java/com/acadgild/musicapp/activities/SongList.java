@@ -51,6 +51,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
 
 
         mAdapterListFile.setSongsList(mSongList);
+
+
             if (mSongList == null || mSongList.isEmpty()) {
                 Toast.makeText(SongList.this, "NULL", Toast.LENGTH_SHORT).show();
             }
@@ -82,21 +84,22 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
     @Override
     protected void onStop() {
         super.onStop();
-        unbindService(musicConnection);
     }
 
-/*
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //Stop service
 
-        unbindService(musicConnection);
-        stopService(playIntent);
-        serviceMusic = null;
+        if(serviceMusic != null)
+        {
+            Toast.makeText(this, "ITS NOT NULL ON DESTROY", Toast.LENGTH_SHORT).show();
+            Intent in = new Intent(this,ActivityDisplaySongs.class);
+            startActivity(in);
+        }
     }
 
-*/
+
 
     @Override
     public void onBackPressed() {

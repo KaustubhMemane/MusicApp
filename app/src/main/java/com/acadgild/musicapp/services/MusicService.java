@@ -156,6 +156,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         updateNotification(songName);
     }
 
+
+
+
     public void playPauseSong() {
 
         if (mState == STATE_PAUSED) {
@@ -175,6 +178,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void nextSong() {
+        if(SONG_POS >= mListSongs.size())
+        {
+            SONG_POS =0;
+        }
         startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName());
         SONG_POS++;
     }
@@ -241,6 +248,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 .setDefaults(Notification.FLAG_NO_CLEAR)
                 .build();
         notificationManager.notify(NOTIFICATION_ID, mNotification);
+
     }
 
     private void updateNotification(String songName) {

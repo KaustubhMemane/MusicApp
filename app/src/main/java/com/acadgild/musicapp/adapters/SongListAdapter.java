@@ -21,7 +21,6 @@ import java.util.ArrayList;
 public class SongListAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Song> songList;//Data Source for ListView
-
     public SongListAdapter(Context context, ArrayList<Song> list) {
         mContext = context;
         this.songList = list;
@@ -44,9 +43,10 @@ public class SongListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
         if (convertView == null) {
             //Layout inflate for list item
-            convertView = LayoutInflater.from(mContext).inflate(R.layout.song_list_item, null);
+               convertView = LayoutInflater.from(mContext).inflate(R.layout.song_list_item, null);
         }
 
         ImageView mImgSong = (ImageView) convertView.findViewById(R.id.img_listitem_file);

@@ -8,6 +8,7 @@ public class Album {
 
     private String albumName;
 
+
     public String getAlbumName() {
         return albumName;
     }

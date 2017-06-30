@@ -58,6 +58,10 @@ public class ListOfFavoriteListAdapter extends BaseAdapter {
         TextView mtextAlbumDuration = (TextView) convertView.findViewById(R.id.textViewDuration);
 
         mtextViewAlbumName.setText(mAlbum.get(position).getAlbumName());
+/*
+        long id = (mAlbum.get(position).getAlbumId());
+*/
+
 
         return convertView;
     }

@@ -30,11 +30,15 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.MediaController;
@@ -43,6 +47,7 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.acadgild.musicapp.R;
+import com.acadgild.musicapp.adapters.ListAlbumAdapter;
 import com.acadgild.musicapp.adapters.ListOfFavoriteListAdapter;
 import com.acadgild.musicapp.adapters.SongListAdapter;
 import com.acadgild.musicapp.database.FavoriteDatabase;
@@ -78,16 +83,31 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     //SQLite Database for storing songs information
     private SQLiteDatabase mDb;
     String albumName = "";
+    long id;
+    ListAlbumAdapter listAlbumAdapter;
+    RecyclerView recyclerView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_display_songs);
+
+        recyclerView = (RecyclerView) findViewById(R.id.all_album_view_rc_list);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         SonglistDBHelper songDBhelper = new SonglistDBHelper(this);
+
         mDb = songDBhelper.getWritableDatabase();
 
         cursor = getAllAlbum();
-        if(cursor!=null)
+
+        listAlbumAdapter = new ListAlbumAdapter(ActivityDisplaySongs.this, cursor);
+
+        recyclerView.setAdapter(listAlbumAdapter);
+
+        /*if(cursor!=null)
             mAlbumList = cursorToArray(cursor);
 
         if(mAlbumList != null) {
@@ -96,19 +116,33 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
             mListAlbum.setOnItemClickListener(this);
             mAdapterAlbum = new ListOfFavoriteListAdapter(ActivityDisplaySongs.this, mAlbumList);
             mListAlbum.setAdapter(mAdapterAlbum);
-        }
+        }*/
+
         checkPermission();
         init();
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+
+                long id = (long) viewHolder.itemView.getTag();
+                removeAlbumList(id);
+                listAlbumAdapter.swapCursor(getAllAlbum());
+
+            }
+
+        }).attachToRecyclerView(recyclerView);
     }
 
     private void init() {
         getActionBar();
         mBtnAddSongs = (FloatingActionButton) findViewById(R.id.floatingActionButton2);
         mBtnImport = (Button) findViewById(R.id.btn_import_files);
-        //mLinearListImportedFiles = (LinearLayout) findViewById(R.id.linear_list_imported_files);
-        //mRelativeBtnImport = (RelativeLayout) findViewById(R.id.relative_btn_import);
-        /*mListSongs = (ListView) findViewById(R.id.list_songs_actimport);
-      mListSongs.setOnItemClickListener(this);*/
+
         mBtnAddSongs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,7 +176,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                             }
                         }
                         Toast.makeText(ActivityDisplaySongs.this, sample + ": got it", Toast.LENGTH_SHORT).show();
- //                       mAdapterListFile.notifyDataSetChanged();
+                        //                       mAdapterListFile.notifyDataSetChanged();
                         //mAdapterAlbum.setAlbum(mAlbumList);
                     }
                 });
@@ -152,8 +186,6 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                         Toast.makeText(ActivityDisplaySongs.this, "NO", Toast.LENGTH_SHORT).show();
                     }
                 });
-
-
                 AlertDialog alertDialog1 = alertDialog.create();
                 alertDialog1.show();
             }
@@ -165,14 +197,22 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
     private void addNewAlbum(String albumName) {
         if (albumName != null && !albumName.isEmpty()) {
+
             ContentValues cv = new ContentValues();
             cv.put(FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME, albumName);
             mDb.insert(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS, null, cv);
+
+            listAlbumAdapter.swapCursor(getAllAlbum());
         } else {
             Toast.makeText(ActivityDisplaySongs.this, "ENTER ALBUM NAME", Toast.LENGTH_SHORT).show();
         }
     }
 
+
+    private boolean removeAlbumList(long id) {
+        return mDb.delete(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
+                FavoriteDatabase.ListOfTable._ID + "=" + id, null) > 0;
+    }
 
     private Cursor getAllAlbum() {
         Cursor c = mDb.query(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
@@ -196,20 +236,10 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
 
         mSongList = listAllSongs();
-//        mAdapterListFile.setSongsList(mSongList);
 
         Intent intent = new Intent(ActivityDisplaySongs.this, SongList.class);
-       /* Bundle bundle = new Bundle();
-        bundle.putSerializable("ARRAYLIST",(Serializable) mSongList);
-
-        intent.putExtra("songBundleList", bundle);
-       */
-
         intent.putParcelableArrayListExtra("extraSongs", mSongList);
         startActivity(intent);
-//        mLinearListImportedFiles.setVisibility(View.VISIBLE);
-//        mRelativeBtnImport.setVisibility(View.GONE);
-//        serviceMusic.setSongList(mSongList);
 
     }
 
@@ -287,26 +317,23 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
         return null;
     }
 
-    private ArrayList<Album> cursorToArray(Cursor cursor)
-    {
+    private ArrayList<Album> cursorToArray(Cursor cursor) {
 
         ArrayList<Album> sample = new ArrayList<Album>();
-        if(!cursor.equals(null) && cursor!=null)
-        {
+        if (!cursor.equals(null) && cursor != null) {
 
             Album album = new Album();
 
-            if(cursor.moveToFirst()) {
-                do{
+            if (cursor.moveToFirst()) {
+                do {
                     album.setAlbumName(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME)));
                     sample.add(album);
-                }while (cursor.moveToNext());
+                } while (cursor.moveToNext());
                 return sample;
             }
-            }
+        }
         return null;
     }
-
 
 
     //Check whether sdcard is present or not
@@ -334,31 +361,6 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        serviceMusic.setSelectedSong(position, MusicService.NOTIFICATION_ID);
+
     }
-
-
-/*    @Override
-    protected void onStart() {
-        super.onStart();
-        //Start service
-        if (playIntent == null) {
-            playIntent = new Intent(this, MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
-        }
-        else
-        {
-            playIntent = null;
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        //Stop service
-        unbindService(musicConnection);
-        stopService(playIntent);
-        serviceMusic = null;
-        super.onDestroy();
-    }*/
 }

@@ -19,6 +19,7 @@ import android.widget.RemoteViews;
 import com.acadgild.musicapp.R;
 import com.acadgild.musicapp.helper.Song;
 
+import java.net.URI;
 import java.util.ArrayList;
 
 /**
@@ -207,6 +208,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         SONG_POS = pos;
         NOTIFICATION_ID = notification_id;
         setSongURI(Uri.parse(mListSongs.get(SONG_POS).getSongUri()));
+
+
         showNotification();
         startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
     }

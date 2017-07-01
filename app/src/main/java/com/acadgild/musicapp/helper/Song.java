@@ -4,25 +4,28 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by AcadGildMentor on 6/5/2015.
- */
 public class Song implements Parcelable {
     private String mSongName, mSongAlbumName , mSongFullPath , mSongDuration ;
-    private String mSongUri;
+    private String mSongUri, mAlbumArt;
     private int mSongId;
 
     public Song(){ }
-    public Song(String name , int id ,  String album_name , String full_path , String duration , String songuri ){
+    public Song(String name , int id ,  String album_name , String full_path , String duration , String songuri,String albumArt){
         this.mSongName = name;
         this.mSongId = id;
         this.mSongAlbumName = album_name;
         this.mSongFullPath = full_path;
         this.mSongDuration = duration;
         this.mSongUri = songuri;
+        this.mAlbumArt = albumArt;
     }
 
 
+
+
+    public String getAlbumArt() { return mAlbumArt;}
+
+    public  void setAlbumArt(String albumArt) {  this.mAlbumArt = albumArt;}
 
     public String getSongName() {
         return mSongName;
@@ -96,6 +99,7 @@ public class Song implements Parcelable {
         mSongDuration = in.readString();
         mSongUri = in.readString();
         mSongId = in.readInt();
+        mAlbumArt = in.readString();
     }
 
     @Override
@@ -106,6 +110,6 @@ public class Song implements Parcelable {
         dest.writeString(mSongDuration);
         dest.writeString(String.valueOf(mSongUri));
         dest.writeInt(mSongId);
+        dest.writeString(mAlbumArt);
     }
-
 }

@@ -164,6 +164,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                         Toast.makeText(ActivityDisplaySongs.this, albumName + "YES", Toast.LENGTH_SHORT).show();
                         addNewAlbum(albumName);
 
+/*
                         cursor = null;
                         cursor = getAllAlbum();
                         mAlbumList = cursorToArray(cursor);
@@ -176,6 +177,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                             }
                         }
                         Toast.makeText(ActivityDisplaySongs.this, sample + ": got it", Toast.LENGTH_SHORT).show();
+*/
                         //                       mAdapterListFile.notifyDataSetChanged();
                         //mAdapterAlbum.setAlbum(mAlbumList);
                     }
@@ -299,7 +301,6 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                         //Log.d("test",res[0] );
                         song.setSongFullPath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                         song.setSongId(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
-                        song.setSongFullPath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                         song.setSongAlbumName(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
                         song.setSongUri(String.valueOf(ContentUris.withAppendedId(
                                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,

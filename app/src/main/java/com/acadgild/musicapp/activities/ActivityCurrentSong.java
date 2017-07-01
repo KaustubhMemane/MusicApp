@@ -6,9 +6,6 @@ import android.support.v7.app.ActionBarActivity;
 
 import com.acadgild.musicapp.R;
 
-/**
- * Created by AcadGildMentor on 6/9/2015.
- */
 public class ActivityCurrentSong extends ActionBarActivity{
 
     @Override

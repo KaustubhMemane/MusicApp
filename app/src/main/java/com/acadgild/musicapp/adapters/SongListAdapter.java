@@ -2,10 +2,12 @@ package com.acadgild.musicapp.adapters;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 public class SongListAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Song> songList;//Data Source for ListView
+
     public SongListAdapter(Context context, ArrayList<Song> list) {
         mContext = context;
         this.songList = list;
@@ -58,6 +61,7 @@ public class SongListAdapter extends BaseAdapter {
         mtxtSongName.setText(songList.get(position).getSongName());
         mTxtSongAlbumName.setText(songList.get(position).getSongAlbumName());
         mTxtSongDuration.setText(songList.get(position).getSongDuration());
+
 
         return convertView;
     }

@@ -21,8 +21,7 @@
 
 
     <Button
-        android:focusable="false"
-        android:id="@+id/button"
+        android:id="@+id/buttonAddFav"
         android:layout_width="30dp"
         android:layout_height="48dp"
         android:layout_marginLeft="8dp"
@@ -30,11 +29,13 @@
         android:layout_marginTop="0dp"
         android:layout_weight="1"
         android:background="@mipmap/ic_launcher"
+        android:focusable="false"
+        android:focusableInTouchMode="true"
+        android:visibility="visible"
         app:layout_constraintHorizontal_bias="0.944"
         app:layout_constraintLeft_toRightOf="@+id/txt_listitem_filename"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/txt_listitem_filename" />
-
     <TextView
         android:id="@+id/txt_listitem_filename"
         style="@style/text_large_white"
@@ -76,10 +77,10 @@
         android:layout_marginRight="0dp"
         android:layout_marginTop="0dp"
         android:gravity="right"
-        android:singleLine="true"
+        android:maxLines="1"
         android:text="1:40"
         app:layout_constraintHorizontal_bias="0.941"
-        app:layout_constraintLeft_toLeftOf="@+id/button"
-        app:layout_constraintRight_toRightOf="@+id/button"
+        app:layout_constraintLeft_toLeftOf="@+id/buttonAddFav"
+        app:layout_constraintRight_toRightOf="@+id/buttonAddFav"
         app:layout_constraintTop_toBottomOf="@+id/img_listitem_file" />
 </android.support.constraint.ConstraintLayout>

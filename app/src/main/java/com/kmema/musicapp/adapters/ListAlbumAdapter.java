@@ -1,7 +1,8 @@
-package com.acadgild.musicapp.adapters;
+package com.kmema.musicapp.adapters;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,8 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.acadgild.musicapp.R;
-import com.acadgild.musicapp.database.FavoriteDatabase;
+import com.kmema.musicapp.R;
+import com.kmema.musicapp.activities.SongList;
+import com.kmema.musicapp.database.FavoriteDatabase;
+import com.kmema.musicapp.helper.Song;
+
+import java.util.ArrayList;
 
 /**
  * Created by kmema on 6/29/2017.
@@ -21,6 +26,7 @@ public class ListAlbumAdapter extends RecyclerView.Adapter<ListAlbumAdapter.Albu
 
     private Context mContext;
     private Cursor mCursor;
+    private ArrayList<Song> mSongList;
 
     public ListAlbumAdapter(Context mContext, Cursor mCursor)
     {
@@ -39,19 +45,29 @@ public class ListAlbumAdapter extends RecyclerView.Adapter<ListAlbumAdapter.Albu
     }
 
     @Override
-    public void onBindViewHolder(AlbumViewHolder holder, int position) {
+    public void onBindViewHolder(final AlbumViewHolder holder, int position) {
         if(!mCursor.moveToPosition(position))
             return;
 
-        String albumname = mCursor.getString(mCursor.getColumnIndex(FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME));
+        final String albumname = mCursor.getString(mCursor.getColumnIndex(FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME));
 
         long id = mCursor.getLong(mCursor.getColumnIndex(FavoriteDatabase.ListOfTable._ID));
 
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(mContext, SongList.class);
+                intent.putExtra("albumnameExtra",albumname);
+                mContext.startActivity(intent);
+            }
+        });
 
         holder.albumNameTextView.setText(albumname);
-        holder.itemView.setTag(id);
-    }
 
+        holder.itemView.setTag(R.string.tag2_name,albumname);
+        holder.itemView.setTag(R.string.tag1_id,id);
+    }
 
     public void swapCursor(Cursor newCursor)
     {
@@ -81,5 +97,8 @@ public class ListAlbumAdapter extends RecyclerView.Adapter<ListAlbumAdapter.Albu
             super(itemView);
             albumNameTextView = (TextView) itemView.findViewById(R.id.textViewAlbumName);
         }
+
+
+
     }
 }

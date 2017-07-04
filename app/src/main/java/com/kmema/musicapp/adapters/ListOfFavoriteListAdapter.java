@@ -1,4 +1,4 @@
-package com.acadgild.musicapp.adapters;
+package com.kmema.musicapp.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -8,9 +8,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.acadgild.musicapp.R;
-import com.acadgild.musicapp.database.FavoriteDatabase;
-import com.acadgild.musicapp.helper.Album;
+import com.kmema.musicapp.R;
+import com.kmema.musicapp.helper.Album;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package com.acadgild.musicapp.services;
+package com.kmema.musicapp.services;
 
 import android.app.Service;
 import android.content.Intent;

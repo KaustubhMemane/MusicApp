@@ -1,10 +1,9 @@
-package com.acadgild.musicapp.activities;
+package com.kmema.musicapp.activities;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 
-import com.acadgild.musicapp.R;
+import com.kmema.musicapp.R;
 
 public class ActivityCurrentSong extends ActionBarActivity{
 

@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/song_list_item_bg"
     android:orientation="horizontal"
-    android:padding="10dip">
+    android:layout_margin="8dp">
 
     <ImageView
         android:id="@+id/img_listitem_file"

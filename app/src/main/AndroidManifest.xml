@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.acadgild.musicapp">
+    package="com.kmema.musicapp">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -12,10 +12,10 @@
         android:allowBackup="true"
         android:icon="@drawable/app_icon"
         android:label="@string/app_name"
-        android:theme="@style/Theme.AppCompat">
+        android:theme="@style/Theme.AppCompat.NoActionBar">
         <activity
             android:exported="true"
-            android:name=".activities.ActivityDisplaySongs">
+            android:name="com.kmema.musicapp.activities.ActivityDisplaySongs">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,13 +26,13 @@
 
         <activity
             android:resumeWhilePausing="true"
-            android:parentActivityName=".activities.ActivityDisplaySongs"
-            android:name=".activities.SongList" />
+            android:parentActivityName="com.kmema.musicapp.activities.ActivityDisplaySongs"
+            android:name="com.kmema.musicapp.activities.SongList" />
 
 
-        <activity android:name=".activities.ActivityCurrentSong" />
+        <activity android:name="com.kmema.musicapp.activities.ActivityCurrentSong" />
 
-        <service android:name=".services.MusicService">
+        <service android:name="com.kmema.musicapp.services.MusicService">
             <intent-filter>
                 <action android:name="com.acadgild.musicapp.STOP" />
                 <action android:name="com.acadgild.musicapp.NEXT" />

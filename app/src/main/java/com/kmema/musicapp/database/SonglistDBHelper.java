@@ -1,4 +1,4 @@
-package com.acadgild.musicapp.database;
+package com.kmema.musicapp.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

@@ -1,4 +1,4 @@
-package com.acadgild.musicapp;
+package com.kmema.musicapp;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

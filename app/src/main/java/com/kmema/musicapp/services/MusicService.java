@@ -1,4 +1,4 @@
-package com.acadgild.musicapp.services;
+package com.kmema.musicapp.services;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -15,16 +15,14 @@ import android.os.PowerManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
-import com.acadgild.musicapp.R;
-import com.acadgild.musicapp.helper.Song;
+import com.kmema.musicapp.R;
+import com.kmema.musicapp.helper.Song;
 
-import java.net.URI;
 import java.util.ArrayList;
 
-/**
- * Created by AcadGildMentor on 6/8/2015.
- */
+
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
     private MediaPlayer mPlayer;
@@ -108,7 +106,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mPlayer.stop();
         mPlayer.release();
 
-        System.gc();
+/*        System.gc();*/
         System.exit(0);
         return false;
     }
@@ -158,8 +156,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
 
-
-
     public void playPauseSong() {
 
         if (mState == STATE_PAUSED) {
@@ -179,17 +175,26 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void nextSong() {
-        if(SONG_POS >= mListSongs.size())
-        {
-            SONG_POS =0;
+        if (SONG_POS > mListSongs.size()) {
+            SONG_POS = 0;
         }
-        startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName());
-        SONG_POS++;
+        try {
+            startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName());
+            SONG_POS++;
+        } catch (Exception e) {
+            Toast.makeText(this, "No Next Song", Toast.LENGTH_SHORT).show();
+            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
+        }
     }
 
     public void previousSong() {
-        startSong(Uri.parse(mListSongs.get(SONG_POS - 1).getSongUri()), mListSongs.get(SONG_POS - 1).getSongName());
-        SONG_POS--;
+        try {
+            startSong(Uri.parse(mListSongs.get(SONG_POS - 1).getSongUri()), mListSongs.get(SONG_POS - 1).getSongName());
+            SONG_POS--;
+        } catch (Exception e) {
+            Toast.makeText(this, "No previous Song", Toast.LENGTH_SHORT).show();
+            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
+        }
     }
 
     public void setSongURI(Uri uri) {
@@ -208,7 +213,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         SONG_POS = pos;
         NOTIFICATION_ID = notification_id;
         setSongURI(Uri.parse(mListSongs.get(SONG_POS).getSongUri()));
-
 
         showNotification();
         startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());

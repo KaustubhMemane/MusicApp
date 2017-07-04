@@ -1,4 +1,4 @@
-package com.acadgild.musicapp.helper;
+package com.kmema.musicapp.helper;
 
 import android.content.Context;
 import android.net.Uri;
@@ -7,7 +7,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.acadgild.musicapp.R;
+import com.kmema.musicapp.R;
 
 /**
  * Created by AcadGildMentor on 6/8/2015.

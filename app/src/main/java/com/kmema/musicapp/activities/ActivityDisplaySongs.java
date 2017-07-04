@@ -1,33 +1,22 @@
-package com.acadgild.musicapp.activities;
+package com.kmema.musicapp.activities;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -38,33 +27,28 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.MediaController;
-import android.widget.RelativeLayout;
-import android.widget.RemoteViews;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.acadgild.musicapp.R;
-import com.acadgild.musicapp.adapters.ListAlbumAdapter;
-import com.acadgild.musicapp.adapters.ListOfFavoriteListAdapter;
-import com.acadgild.musicapp.adapters.SongListAdapter;
-import com.acadgild.musicapp.database.FavoriteDatabase;
-import com.acadgild.musicapp.database.SonglistDBHelper;
-import com.acadgild.musicapp.helper.Album;
-import com.acadgild.musicapp.helper.Song;
-import com.acadgild.musicapp.helper.SongView;
-import com.acadgild.musicapp.services.MusicService;
+import com.kmema.musicapp.R;
+import com.kmema.musicapp.adapters.ListAlbumAdapter;
+import com.kmema.musicapp.adapters.ListOfFavoriteListAdapter;
+import com.kmema.musicapp.adapters.SongListAdapter;
+import com.kmema.musicapp.database.FavoriteDatabase;
+import com.kmema.musicapp.database.SonglistDBHelper;
+import com.kmema.musicapp.helper.Album;
+import com.kmema.musicapp.helper.Song;
+import com.kmema.musicapp.services.MusicService;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 
 public class ActivityDisplaySongs extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
-
+    public static SeekBar mSeekBar;
     private ListOfFavoriteListAdapter mAdapterAlbum;
     private Cursor cursor = null;
     private ListView mListAlbum;
@@ -86,6 +70,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     long id;
     ListAlbumAdapter listAlbumAdapter;
     RecyclerView recyclerView;
+    FloatingActionButton backWardBtn, forwarBtn, playBtn, pauseBtn;
 
 
     @Override
@@ -93,19 +78,20 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_display_songs);
 
+        backWardBtn = (FloatingActionButton) findViewById(R.id.backward_floating_btn);
+        forwarBtn = (FloatingActionButton) findViewById(R.id.foward_floating_btn);
+        playBtn = (FloatingActionButton) findViewById(R.id.play_floating_btn);
+        pauseBtn = (FloatingActionButton) findViewById(R.id.pause_floating_btn);
+
         recyclerView = (RecyclerView) findViewById(R.id.all_album_view_rc_list);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
         SonglistDBHelper songDBhelper = new SonglistDBHelper(this);
-
         mDb = songDBhelper.getWritableDatabase();
-
         cursor = getAllAlbum();
-
         listAlbumAdapter = new ListAlbumAdapter(ActivityDisplaySongs.this, cursor);
-
         recyclerView.setAdapter(listAlbumAdapter);
+
 
         /*if(cursor!=null)
             mAlbumList = cursorToArray(cursor);
@@ -129,14 +115,34 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
 
-                long id = (long) viewHolder.itemView.getTag();
-                removeAlbumList(id);
+                long id = (long) viewHolder.itemView.getTag(R.string.tag1_id);
+                String albumNameToDelete = (String) viewHolder.itemView.getTag(R.string.tag2_name);
+                removeAlbumList(id, albumNameToDelete);
                 listAlbumAdapter.swapCursor(getAllAlbum());
 
             }
 
         }).attachToRecyclerView(recyclerView);
+
+        backWardBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                serviceMusic = new MusicService();
+                serviceMusic.previousSong();
+            }
+        });
     }
+
+
+
+
 
     private void init() {
         getActionBar();
@@ -148,7 +154,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
             public void onClick(View v) {
 
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(ActivityDisplaySongs.this);
-                alertDialog.setTitle("New Album");
+                alertDialog.setTitle("Enter New Album Name");
                 final EditText input = new EditText(ActivityDisplaySongs.this);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
@@ -161,7 +167,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         albumName = input.getText().toString();
-                        Toast.makeText(ActivityDisplaySongs.this, albumName + "YES", Toast.LENGTH_SHORT).show();
+               //         Toast.makeText(ActivityDisplaySongs.this, albumName + "YES", Toast.LENGTH_SHORT).show();
                         addNewAlbum(albumName);
 
 /*
@@ -198,20 +204,50 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
 
     private void addNewAlbum(String albumName) {
-        if (albumName != null && !albumName.isEmpty()) {
 
+        if (albumName != null && !albumName.isEmpty()) {
+            if(checkPreviousAlbumName(albumName))
+            {
+                Toast.makeText(this, "No Duplicate Album", Toast.LENGTH_SHORT).show();
+                return;
+            }
             ContentValues cv = new ContentValues();
             cv.put(FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME, albumName);
             mDb.insert(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS, null, cv);
 
             listAlbumAdapter.swapCursor(getAllAlbum());
         } else {
-            Toast.makeText(ActivityDisplaySongs.this, "ENTER ALBUM NAME", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ActivityDisplaySongs.this, "TRY Again", Toast.LENGTH_SHORT).show();
         }
     }
 
 
-    private boolean removeAlbumList(long id) {
+    public boolean checkPreviousAlbumName(String albumName)
+    {
+        Cursor c = mDb.query(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
+                new String[]{FavoriteDatabase.ListOfTable._ID,
+                        FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME},
+                FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME + " = ?",
+                new String[]{albumName},
+                null,
+                null,
+                FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME);
+
+        if (c != null && c.getCount() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    private boolean removeAlbumList(long id, String albumNameToDelete) {
+
+        try {
+            mDb.delete(FavoriteDatabase.connectionTableSong.TABLE_NAME_TAG,
+                    FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME +" = ?",new String[] {albumNameToDelete});
+                 }catch (Exception e){
+        }
         return mDb.delete(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
                 FavoriteDatabase.ListOfTable._ID + "=" + id, null) > 0;
     }
@@ -242,7 +278,6 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
         Intent intent = new Intent(ActivityDisplaySongs.this, SongList.class);
         intent.putParcelableArrayListExtra("extraSongs", mSongList);
         startActivity(intent);
-
     }
 
 
@@ -363,5 +398,6 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+//        Toast.makeText(this, , Toast.LENGTH_SHORT).show();
     }
 }

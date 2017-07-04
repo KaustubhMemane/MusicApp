@@ -1,6 +1,5 @@
-package com.acadgild.musicapp.helper;
+package com.kmema.musicapp.helper;
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 

@@ -20,7 +20,7 @@
 
         <TextView
             android:id="@+id/textViewAlbumName"
-            style="@style/text_gray"
+            style="@style/text_large_white"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
@@ -63,4 +63,5 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.45" />
     </android.support.constraint.ConstraintLayout>
+
 </android.support.v7.widget.CardView>

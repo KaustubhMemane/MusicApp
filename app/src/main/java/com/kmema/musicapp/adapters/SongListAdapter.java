@@ -1,19 +1,15 @@
-package com.acadgild.musicapp.adapters;
+package com.kmema.musicapp.adapters;
 
 import android.content.Context;
-import android.net.Uri;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.acadgild.musicapp.R;
-import com.acadgild.musicapp.helper.Song;
-import com.acadgild.musicapp.helper.SongView;
+import com.kmema.musicapp.R;
+import com.kmema.musicapp.helper.Song;
 
 import java.util.ArrayList;
 

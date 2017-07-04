@@ -1,4 +1,4 @@
-package com.acadgild.musicapp.helper;
+package com.kmema.musicapp.helper;
 
 /**
  * Created by kmema on 6/28/2017.

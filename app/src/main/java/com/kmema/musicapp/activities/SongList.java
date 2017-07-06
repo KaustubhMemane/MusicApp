@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -41,12 +42,16 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
     private SQLiteDatabase mDb;
     private String mAlbumName = null;
     ActionBar actionBar;
+    FloatingActionButton backWardBtn, forwarBtn, playBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
 
+        backWardBtn = (FloatingActionButton) findViewById(R.id.backward_floating_btn);
+        forwarBtn = (FloatingActionButton) findViewById(R.id.foward_floating_btn);
+        playBtn = (FloatingActionButton) findViewById(R.id.play_floating_btn);
 
         SonglistDBHelper songDBhelper = new SonglistDBHelper(this);
 
@@ -101,6 +106,30 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             {
                 //serviceMusic.setSongList(mSongList);
             }
+
+
+            backWardBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    serviceMusic.previousSong();
+                }
+            });
+        forwarBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                serviceMusic.nextSong();
+            }
+        });
+
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                serviceMusic.playPauseSong();
+            }
+        });
+
+
         }
 
     private ArrayList<Song> converIntoList(Cursor cursor) {
@@ -108,13 +137,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
 
         if (!cursor.equals(null) && cursor != null) {
             if (cursor.moveToFirst()) {
-/*                this.mSongName = name;
-                this.mSongId = id;
-                this.mSongAlbumName = album_name;
-                this.mSongFullPath = full_path;
-                this.mSongDuration = duration;
-                this.mSongUri = songuri;
-                this.mAlbumArt = albumArt;*/
+
                 do {
                     Song song = new Song();
                     song.setSongName(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.connectionTableSong.COLUMN_SONG_NAME)));

@@ -18,6 +18,7 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.kmema.musicapp.R;
+import com.kmema.musicapp.activities.SongList;
 import com.kmema.musicapp.helper.Song;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
+    Context songClassContext;
     private MediaPlayer mPlayer;
     private Uri mSongUri;
 
@@ -213,8 +215,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         SONG_POS = pos;
         NOTIFICATION_ID = notification_id;
         setSongURI(Uri.parse(mListSongs.get(SONG_POS).getSongUri()));
-
         showNotification();
+
         startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
     }
 

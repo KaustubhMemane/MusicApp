@@ -70,7 +70,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     long id;
     ListAlbumAdapter listAlbumAdapter;
     RecyclerView recyclerView;
-    FloatingActionButton backWardBtn, forwarBtn, playBtn, pauseBtn;
+
 
 
     @Override
@@ -78,10 +78,6 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_display_songs);
 
-        backWardBtn = (FloatingActionButton) findViewById(R.id.backward_floating_btn);
-        forwarBtn = (FloatingActionButton) findViewById(R.id.foward_floating_btn);
-        playBtn = (FloatingActionButton) findViewById(R.id.play_floating_btn);
-        pauseBtn = (FloatingActionButton) findViewById(R.id.pause_floating_btn);
 
         recyclerView = (RecyclerView) findViewById(R.id.all_album_view_rc_list);
 
@@ -124,20 +120,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
         }).attachToRecyclerView(recyclerView);
 
-        backWardBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-            }
-        });
-
-        playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                serviceMusic = new MusicService();
-                serviceMusic.previousSong();
-            }
-        });
     }
 
 
@@ -337,12 +320,28 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                         song.setSongFullPath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                         song.setSongId(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
                         song.setSongAlbumName(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
+
                         song.setSongUri(String.valueOf(ContentUris.withAppendedId(
                                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                                 cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)))));
+
                         String duration = getDuration(Integer.parseInt(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))));
+
                         song.setSongDuration(duration);
 
+                        Cursor cursor1 = managedQuery(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                                new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
+                                MediaStore.Audio.Albums._ID+ " = ?",
+                                new String[] {String.valueOf(cursor.getColumnIndex(MediaStore.Audio.Media._ID))},
+                                null);
+
+                        if (cursor1.moveToFirst()) {
+                            String path = cursor1.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                            Log.e("path::", path);
+                        }
+
+
+                        //Toast.makeText(this, MediaStore.Audio.Albums.ALBUM_ART"", Toast.LENGTH_SHORT).show();
                         songList.add(song);
                     } while (cursor.moveToNext());
                     return songList;

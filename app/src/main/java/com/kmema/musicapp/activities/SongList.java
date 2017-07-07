@@ -57,11 +57,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
 
-
-
         CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_bar);
         collapsingToolbar.setTitle("MyLiveMusic");
-
 
         currentSongImageView = (ImageView) findViewById(R.id.songImageView);
         backWardBtn = (FloatingActionButton) findViewById(R.id.backward_floating_btn);
@@ -95,6 +92,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         {
             Cursor cursor = getDataForAlbum(mAlbumName);
             collapsingToolbar.setTitle(mAlbumName);
+            //mAdapterListFile.deleteBtn.setVisibility(View.VISIBLE);
             if(cursor.getCount() <= 0)
             {
                 return;
@@ -106,16 +104,19 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         }
         else
         {
+            //mAdapterListFile.deleteBtn.setVisibility(View.INVISIBLE);
             mSongList = getIntent().getParcelableArrayListExtra("extraSongs");
         }
 
 
         mAdapterListFile = new SongListAdapter(SongList.this, mSongList);
         mListSongs.setAdapter(mAdapterListFile);
-
-
         mAdapterListFile.setSongsList(mSongList);
 
+        if(mAlbumName!=null)
+        {
+            mAdapterListFile.SetListName(mAlbumName);
+        }
             if (mSongList == null || mSongList.isEmpty()) {
                 //Toast.makeText(SongList.this, "NULL", //Toast.LENGTH_SHORT).show();
             }
@@ -161,6 +162,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
                 //Toast.makeText(SongList.this, currentSong[0] +"Now Playing", //Toast.LENGTH_SHORT).show();
             }
         });
+
 
     }
 
@@ -281,7 +283,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             if(!checkDuplicateSong(songName, albumName))
             {
                 ContentValues cv = new ContentValues();
-                cv.put(FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME, albumName);
+                cv.put(FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME,albumName);
                 cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_ALBUM_NAME,mSongList.get(position).getSongAlbumName());
                 cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_DURATION,mSongList.get(position).getSongDuration());
                 cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_FULL_PATH, mSongList.get(position).getSongFullPath());
@@ -299,6 +301,12 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         else {
             Toast.makeText(SongList.this, "could not insert", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void delete()
+    {
+
+
     }
 
     public boolean checkDuplicateSong(String songName, String albumName)

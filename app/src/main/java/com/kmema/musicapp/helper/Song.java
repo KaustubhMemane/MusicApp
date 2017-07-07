@@ -5,11 +5,12 @@ import android.os.Parcelable;
 
 public class Song implements Parcelable {
     private String mSongName, mSongAlbumName , mSongFullPath , mSongDuration ;
-    private String mSongUri, mAlbumArt;
+    private String mSongUri, mAlbumArt, mSongArtist;
     private int mSongId;
 
     public Song(){ }
-    public Song(String name , int id ,  String album_name , String full_path , String duration , String songuri,String albumArt){
+    public Song(String name , int id ,  String album_name , String full_path , String duration , String songuri,String albumArt,
+                String artist){
         this.mSongName = name;
         this.mSongId = id;
         this.mSongAlbumName = album_name;
@@ -17,10 +18,13 @@ public class Song implements Parcelable {
         this.mSongDuration = duration;
         this.mSongUri = songuri;
         this.mAlbumArt = albumArt;
+        this.mSongArtist = artist;
     }
 
 
+    public String getSongArtist() {return  mSongArtist;}
 
+    public void setSongArtist(String artist){this.mSongArtist = artist;}
 
     public String getAlbumArt() { return mAlbumArt;}
 
@@ -99,6 +103,7 @@ public class Song implements Parcelable {
         mSongUri = in.readString();
         mSongId = in.readInt();
         mAlbumArt = in.readString();
+        mSongArtist = in.readString();
     }
 
     @Override
@@ -110,5 +115,6 @@ public class Song implements Parcelable {
         dest.writeString(String.valueOf(mSongUri));
         dest.writeInt(mSongId);
         dest.writeString(mAlbumArt);
+        dest.writeString(mSongArtist);
     }
 }

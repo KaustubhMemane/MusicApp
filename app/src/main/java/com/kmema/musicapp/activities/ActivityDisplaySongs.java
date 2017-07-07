@@ -111,21 +111,35 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
 
-                long id = (long) viewHolder.itemView.getTag(R.string.tag1_id);
-                String albumNameToDelete = (String) viewHolder.itemView.getTag(R.string.tag2_name);
-                removeAlbumList(id, albumNameToDelete);
-                listAlbumAdapter.swapCursor(getAllAlbum());
+                final long id = (long) viewHolder.itemView.getTag(R.string.tag1_id);
+                final String albumNameToDelete = (String) viewHolder.itemView.getTag(R.string.tag2_name);
 
+                AlertDialog.Builder builder = new AlertDialog.Builder(ActivityDisplaySongs.this);
+                builder.setTitle("Delete Album "+albumNameToDelete);
+
+                final int[] choice = {-1};
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        removeAlbumList(id, albumNameToDelete);
+                        listAlbumAdapter.swapCursor(getAllAlbum());
+                    }
+                });
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        listAlbumAdapter.swapCursor(getAllAlbum());
+                        return;
+                    }
+                });
+                builder.show();
             }
+
 
         }).attachToRecyclerView(recyclerView);
 
 
     }
-
-
-
-
 
     private void init() {
         getActionBar();
@@ -329,17 +343,38 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
                         song.setSongDuration(duration);
 
-                        Cursor cursor1 = managedQuery(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                                new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
-                                MediaStore.Audio.Albums._ID+ " = ?",
-                                new String[] {String.valueOf(cursor.getColumnIndex(MediaStore.Audio.Media._ID))},
+                        String songArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+
+                        if(songArtist!=null)
+                            song.setSongArtist(songArtist);
+                        else
+                            song.setSongArtist("No Info");
+
+
+                        Cursor c = managedQuery(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                                new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums.ARTIST},
+                                MediaStore.Audio.Albums._ID + "=?",
+                                new String[] {String.valueOf(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)))},
                                 null);
 
-                        if (cursor1.moveToFirst()) {
-                            String path = cursor1.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-                            Log.e("path::", path);
-                        }
+                        if(c.getCount()>0)
+                        {
+                            if(c.moveToFirst())
+                            {
+                                String coverPath = null;
+                                      coverPath = c.getString(c.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                                if(coverPath!=null)
+                                {
+                                    Log.i("PATH::::",coverPath);
+                                    song.setAlbumArt(coverPath);
+                                }
 
+                            }
+                        }
+                        else
+                        {
+                            Toast.makeText(this, "NULL C", Toast.LENGTH_SHORT).show();
+                        }
 
                         //Toast.makeText(this, MediaStore.Audio.Albums.ALBUM_ART"", Toast.LENGTH_SHORT).show();
                         songList.add(song);

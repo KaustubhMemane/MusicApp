@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class SonglistDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "songList.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
 
     public SonglistDBHelper(Context context)
     {
@@ -41,7 +41,9 @@ public class SonglistDBHelper extends SQLiteOpenHelper {
                 FavoriteDatabase.connectionTableSong.COLUMN_SONG_ALBUM_NAME + " TEXT NOT NULL," +
                 FavoriteDatabase.connectionTableSong.COLUMN_SONG_FULL_PATH + " TEXT NOT NULL," +
                 FavoriteDatabase.connectionTableSong.COLUMN_SONG_DURATION + " TEXT NOT NULL," +
-                FavoriteDatabase.connectionTableSong.COLUMN_SONG_URI + " TEXT NOT NULL" +
+                FavoriteDatabase.connectionTableSong.COLUMN_SONG_URI + " TEXT NOT NULL," +
+                FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTWOTK + " TEXT," +
+                FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTIST + " TEXT NOT NULL" +
                 ");";
 
         db.execSQL(SQL_CREATE_TABLE_LIST);

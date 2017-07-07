@@ -27,5 +27,7 @@ public class FavoriteDatabase {
         public static final String COLUMN_SONG_FULL_PATH = "songFullPath";
         public static final String COLUMN_SONG_DURATION = "songDuration";
         public static final String COLUMN_SONG_URI = "songURI";
+        public static final String COLUMN_SONG_ARTWOTK = "songAlbumArt";
+        public static final String COLUMN_SONG_ARTIST = "songArtist";
     }
 }

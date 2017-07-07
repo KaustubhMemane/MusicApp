@@ -26,6 +26,7 @@ import java.util.ArrayList;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
+    String songNameToDisplay =null;
     Context songClassContext;
     private MediaPlayer mPlayer;
     private Uri mSongUri;
@@ -50,6 +51,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public static int NOTIFICATION_ID = 11;
     private Notification.Builder notificationBuilder;
     private Notification mNotification;
+    private String imageLink;
 
     public class PlayerBinder extends Binder {//Service connection to play in background
 
@@ -143,7 +145,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
 
-    public void startSong(Uri songuri, String songName) {
+    public void startSong(Uri songuri, String songName,int SONG_POS) {
         //Set data & start playing music
         mPlayer.reset();
         mState = STATE_PLAYING;
@@ -155,6 +157,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
         mPlayer.prepareAsync();
         updateNotification(songName);
+        songNameToDisplay =songName;
+        imageLink = mListSongs.get(SONG_POS).getAlbumArt();
     }
 
 
@@ -181,21 +185,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             SONG_POS = 0;
         }
         try {
-            startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName());
+            startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName(),SONG_POS+1);
             SONG_POS++;
         } catch (Exception e) {
             Toast.makeText(this, "No Next Song", Toast.LENGTH_SHORT).show();
-            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
+            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(),SONG_POS);
         }
     }
 
     public void previousSong() {
         try {
-            startSong(Uri.parse(mListSongs.get(SONG_POS - 1).getSongUri()), mListSongs.get(SONG_POS - 1).getSongName());
+            startSong(Uri.parse(mListSongs.get(SONG_POS - 1).getSongUri()), mListSongs.get(SONG_POS - 1).getSongName(),SONG_POS-1);
             SONG_POS--;
         } catch (Exception e) {
             Toast.makeText(this, "No previous Song", Toast.LENGTH_SHORT).show();
-            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
+            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(),SONG_POS);
         }
     }
 
@@ -211,13 +215,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         NOTIFICATION_ID = notification_id;
     }*/
 
-    public void setSelectedSong(int pos, int notification_id) {
+    public void setSelectedSong(int pos, int notification_id,Context context) {
         SONG_POS = pos;
         NOTIFICATION_ID = notification_id;
         setSongURI(Uri.parse(mListSongs.get(SONG_POS).getSongUri()));
         showNotification();
-
-        startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName());
+        startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(),SONG_POS);
     }
 
     public void setSongList(ArrayList<Song> listSong) {
@@ -264,5 +267,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotification.contentView.setTextViewText(R.id.notify_song_name, songName);
         notificationManager.notify(NOTIFICATION_ID, mNotification);
+    }
+
+    public String[] getsongName()
+    {
+        return new String[]{songNameToDisplay,imageLink};
     }
 }

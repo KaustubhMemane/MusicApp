@@ -25,7 +25,6 @@ public class ListOfFavoriteListAdapter extends BaseAdapter {
     public  ListOfFavoriteListAdapter(Context context, ArrayList<Album> mAlbum)
     {
         mContext = context;
-        //this.cursor = cursor;
         this.mAlbum = mAlbum;
     }
 

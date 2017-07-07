@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.kmema.musicapp.R;
@@ -64,7 +65,6 @@ public class ListAlbumAdapter extends RecyclerView.Adapter<ListAlbumAdapter.Albu
         });
 
         holder.albumNameTextView.setText(albumname);
-
         holder.itemView.setTag(R.string.tag2_name,albumname);
         holder.itemView.setTag(R.string.tag1_id,id);
     }
@@ -92,13 +92,12 @@ public class ListAlbumAdapter extends RecyclerView.Adapter<ListAlbumAdapter.Albu
     class AlbumViewHolder extends RecyclerView.ViewHolder {
 
         TextView albumNameTextView;
+        ImageView imageView;
 
         public AlbumViewHolder(View itemView) {
             super(itemView);
             albumNameTextView = (TextView) itemView.findViewById(R.id.textViewAlbumName);
+            imageView = (ImageView) itemView.findViewById(R.id.imageView);
         }
-
-
-
     }
 }

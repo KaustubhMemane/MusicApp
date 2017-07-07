@@ -9,13 +9,18 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.Drawable;
 import android.os.IBinder;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -32,6 +37,9 @@ import java.util.ArrayList;
 
 public class SongList extends ActionBarActivity implements AdapterView.OnItemClickListener {
 
+
+    String[] currentSong;
+    ImageView currentSongImageView;
     private SongListAdapter mAdapterListFile;
     private ArrayList<Song> mSongList;
     private ListView mListSongs;
@@ -49,10 +57,18 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
 
+
+
+        CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_bar);
+        collapsingToolbar.setTitle("MyLiveMusic");
+
+
+        currentSongImageView = (ImageView) findViewById(R.id.songImageView);
         backWardBtn = (FloatingActionButton) findViewById(R.id.backward_floating_btn);
         forwarBtn = (FloatingActionButton) findViewById(R.id.foward_floating_btn);
         playBtn = (FloatingActionButton) findViewById(R.id.play_floating_btn);
-
+        forwarBtn.setVisibility(View.INVISIBLE);
+        backWardBtn.setVisibility(View.INVISIBLE);
         SonglistDBHelper songDBhelper = new SonglistDBHelper(this);
 
         mDb = songDBhelper.getWritableDatabase();
@@ -64,7 +80,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-//                Toast.makeText(SongList.this, "YES ITS A LONG CLICK", Toast.LENGTH_SHORT).show();
+//                //Toast.makeText(SongList.this, "YES ITS A LONG CLICK", ////Toast.LENGTH_SHORT).show();
                 addSongToList(position);
                 return true;
             }
@@ -78,6 +94,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         if(mAlbumName != null)
         {
             Cursor cursor = getDataForAlbum(mAlbumName);
+            collapsingToolbar.setTitle(mAlbumName);
             if(cursor.getCount() <= 0)
             {
                 return;
@@ -100,25 +117,35 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         mAdapterListFile.setSongsList(mSongList);
 
             if (mSongList == null || mSongList.isEmpty()) {
-                Toast.makeText(SongList.this, "NULL", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(SongList.this, "NULL", //Toast.LENGTH_SHORT).show();
             }
             else
             {
                 //serviceMusic.setSongList(mSongList);
             }
 
-
-            backWardBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    serviceMusic.previousSong();
+        backWardBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                serviceMusic.previousSong();
+                currentSong = serviceMusic.getsongName();
+                if(currentSong!=null) {
+                    Drawable img = Drawable.createFromPath(currentSong[1]);
+                    currentSongImageView.setImageDrawable(img);
                 }
-            });
+                //Toast.makeText(SongList.this, currentSong[0] +"Now Playing", //Toast.LENGTH_SHORT).show();
+            }
+        });
         forwarBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 serviceMusic.nextSong();
+                currentSong = serviceMusic.getsongName();
+                if(currentSong!=null) {
+                    Drawable img = Drawable.createFromPath(currentSong[1]);
+                    currentSongImageView.setImageDrawable(img);
+                }
+                //Toast.makeText(SongList.this, currentSong[0] +"Now Playing", //Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -126,11 +153,16 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             @Override
             public void onClick(View v) {
                 serviceMusic.playPauseSong();
+                currentSong = serviceMusic.getsongName();
+                if(currentSong!=null) {
+                    Drawable img = Drawable.createFromPath(currentSong[1]);
+                    currentSongImageView.setImageDrawable(img);
+                }
+                //Toast.makeText(SongList.this, currentSong[0] +"Now Playing", //Toast.LENGTH_SHORT).show();
             }
         });
 
-
-        }
+    }
 
     private ArrayList<Song> converIntoList(Cursor cursor) {
         ArrayList<Song> sample = new ArrayList<Song>();
@@ -145,6 +177,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
                     song.setSongFullPath(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.connectionTableSong.COLUMN_SONG_FULL_PATH)));
                     song.setSongDuration(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.connectionTableSong.COLUMN_SONG_DURATION)));
                     song.setSongUri(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.connectionTableSong.COLUMN_SONG_URI)));
+                    song.setAlbumArt(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTWOTK)));
+                    song.setSongArtist(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTIST)));
                     sample.add(song);
                 } while (cursor.moveToNext());
                 return sample;
@@ -164,7 +198,9 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
                             FavoriteDatabase.connectionTableSong.COLUMN_SONG_FULL_PATH,
                             FavoriteDatabase.connectionTableSong.COLUMN_SONG_ALBUM_NAME,
                             FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME,
-                            FavoriteDatabase.connectionTableSong.COLUMN_SONG_NAME},
+                            FavoriteDatabase.connectionTableSong.COLUMN_SONG_NAME,
+                            FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTWOTK,
+                            FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTIST},
                     FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME + " = ?",
                     new String[]{mAlbumName},
                     null,
@@ -178,17 +214,13 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             }
         }
 
-    /*public void setSongAlbumArt(String path){
-        Bitmap bm= BitmapFactory.decodeFile(path);
-        albumArtImage.setImageBitmap(bm);
-    }
-    */
+
 
     public void addSongToList(final int position) {
         final Cursor cursor = getAllAlbum();
         final ArrayList<String> mylist = new ArrayList<String>();
 
-        if (cursor != null) {
+        if (cursor.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 do {
                     mylist.add(cursor.getString(cursor.getColumnIndex(FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME)));
@@ -211,19 +243,17 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         builder.setSingleChoiceItems(mylist.toArray(new String[mylist.size()]), -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(SongList.this, mylist.get(which), Toast.LENGTH_SHORT).show();
                 addSongToAlbum(mylist.get(which),position);
+                //Toast.makeText(SongList.this, mylist.get(which), //Toast.LENGTH_SHORT).show();
             }
         });
 
         builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
                 Toast.makeText(SongList.this, "YES ACCEPTTED", Toast.LENGTH_SHORT).show();
             }
         });
-
         builder.show();
     }
 
@@ -243,7 +273,6 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             return null;
         }
     }
-
     private void addSongToAlbum(String albumName, int position) {
 
         String songName = mSongList.get(position).getSongName();
@@ -258,6 +287,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
                 cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_FULL_PATH, mSongList.get(position).getSongFullPath());
                 cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_NAME, mSongList.get(position).getSongName());
                 cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_URI, mSongList.get(position).getSongUri());
+                cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTWOTK, mSongList.get(position).getAlbumArt());
+                cv.put(FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTIST, mSongList.get(position).getSongArtist());
                 mDb.insert(FavoriteDatabase.connectionTableSong.TABLE_NAME_TAG, null, cv);
             }
             else
@@ -291,7 +322,17 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        serviceMusic.setSelectedSong(position, MusicService.NOTIFICATION_ID);
+        serviceMusic.setSelectedSong(position, MusicService.NOTIFICATION_ID,this);
+
+        forwarBtn.setVisibility(View.VISIBLE);
+        backWardBtn.setVisibility(View.VISIBLE);
+
+        currentSong = serviceMusic.getsongName();
+        if(currentSong!=null) {
+            Drawable img = Drawable.createFromPath(currentSong[1]);
+            currentSongImageView.setImageDrawable(img);
+        }
+        //Toast.makeText(this, currentSong+"NOW Pplaying", //Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -320,7 +361,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
 
         if(serviceMusic != null)
         {
-            Toast.makeText(this, "ITS NOT NULL ON DESTROY", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "ITS NOT NULL ON DESTROY", //Toast.LENGTH_SHORT).show();
             Intent in = new Intent(this,ActivityDisplaySongs.class);
             startActivity(in);
         }

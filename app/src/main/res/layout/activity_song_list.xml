@@ -56,6 +56,12 @@
                     android:layout_alignBottom="@+id/image"
                     android:background="@drawable/scrim_bottom"/>
 
+                <android.support.v7.widget.AppCompatSeekBar
+                    android:id="@+id/seekbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:layout_gravity="bottom" />
+
                 <android.support.v7.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"

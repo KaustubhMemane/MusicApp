@@ -16,14 +16,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+
 import android.widget.Toast;
 
 import com.kmema.musicapp.R;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 public class SongList extends ActionBarActivity implements AdapterView.OnItemClickListener {
 
 
+    public static String KEY_CURRENT_SONG = "currentSong";
     String[] currentSong;
     ImageView currentSongImageView;
     private SongListAdapter mAdapterListFile;
@@ -48,7 +50,7 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
     ImageView albumArtImage;
     Button addButton;
     private SQLiteDatabase mDb;
-    private String mAlbumName = null;
+    private String mFolderName = null;
     ActionBar actionBar;
     FloatingActionButton backWardBtn, forwarBtn, playBtn;
 
@@ -73,6 +75,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         mListSongs = (ListView) findViewById(R.id.list_songs_actimport);
         mListSongs.setOnItemClickListener(this);
 
+
+
         mListSongs.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -86,12 +90,12 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
 
         albumArtImage=(ImageView)findViewById(R.id.songImageView);
 
-        mAlbumName = getIntent().getExtras().getString("albumnameExtra");
+        mFolderName = getIntent().getExtras().getString("albumnameExtra");
 
-        if(mAlbumName != null)
+        if(mFolderName != null)
         {
-            Cursor cursor = getDataForAlbum(mAlbumName);
-            collapsingToolbar.setTitle(mAlbumName);
+            Cursor cursor = getDataForAlbum(mFolderName);
+            collapsingToolbar.setTitle(mFolderName);
             //mAdapterListFile.deleteBtn.setVisibility(View.VISIBLE);
             if(cursor.getCount() <= 0)
             {
@@ -113,9 +117,10 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         mListSongs.setAdapter(mAdapterListFile);
         mAdapterListFile.setSongsList(mSongList);
 
-        if(mAlbumName!=null)
+
+        if(mFolderName !=null)
         {
-            mAdapterListFile.SetListName(mAlbumName);
+            mAdapterListFile.SetListName(mFolderName);
         }
             if (mSongList == null || mSongList.isEmpty()) {
                 //Toast.makeText(SongList.this, "NULL", //Toast.LENGTH_SHORT).show();
@@ -130,6 +135,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             public void onClick(View v) {
                 serviceMusic.previousSong();
                 currentSong = serviceMusic.getsongName();
+                serviceMusic.setFolderName(mFolderName);
+                mAdapterListFile.setCurrentSongName(currentSong[0]);
                 if(currentSong!=null) {
                     Drawable img = Drawable.createFromPath(currentSong[1]);
                     currentSongImageView.setImageDrawable(img);
@@ -141,7 +148,9 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             @Override
             public void onClick(View v) {
                 serviceMusic.nextSong();
+                serviceMusic.setFolderName(mFolderName);
                 currentSong = serviceMusic.getsongName();
+                mAdapterListFile.setCurrentSongName(currentSong[0]);
                 if(currentSong!=null) {
                     Drawable img = Drawable.createFromPath(currentSong[1]);
                     currentSongImageView.setImageDrawable(img);
@@ -155,6 +164,8 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             public void onClick(View v) {
                 serviceMusic.playPauseSong();
                 currentSong = serviceMusic.getsongName();
+                serviceMusic.setFolderName(mFolderName);
+                mAdapterListFile.setCurrentSongName(currentSong[0]);
                 if(currentSong!=null) {
                     Drawable img = Drawable.createFromPath(currentSong[1]);
                     currentSongImageView.setImageDrawable(img);
@@ -163,8 +174,24 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
             }
         });
 
-
     }
+
+    @Override
+    protected void onResume(){
+
+
+
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String current = savedInstanceState.getString(KEY_CURRENT_SONG);
+        mAdapterListFile.setCurrentSongName(current) ;
+        Log.i("RestoreOnSave Insatance",current);
+    }
+
 
     private ArrayList<Song> converIntoList(Cursor cursor) {
         ArrayList<Song> sample = new ArrayList<Song>();
@@ -190,6 +217,14 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
 
     }
 
+
+
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+    }
 
     Cursor getDataForAlbum(String mAlbumName)
         {
@@ -303,11 +338,6 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
         }
     }
 
-    public void delete()
-    {
-
-
-    }
 
     public boolean checkDuplicateSong(String songName, String albumName)
     {
@@ -331,17 +361,22 @@ public class SongList extends ActionBarActivity implements AdapterView.OnItemCli
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         serviceMusic.setSelectedSong(position, MusicService.NOTIFICATION_ID,this);
-
+        serviceMusic.setFolderName(mFolderName);
         forwarBtn.setVisibility(View.VISIBLE);
         backWardBtn.setVisibility(View.VISIBLE);
-
         currentSong = serviceMusic.getsongName();
+        mAdapterListFile.setCurrentSongName(currentSong[0]);
         if(currentSong!=null) {
             Drawable img = Drawable.createFromPath(currentSong[1]);
             currentSongImageView.setImageDrawable(img);
         }
         //Toast.makeText(this, currentSong+"NOW Pplaying", //Toast.LENGTH_SHORT).show();
     }
+
+
+
+
+
 
     @Override
     protected void onStart() {

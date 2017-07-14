@@ -1,7 +1,6 @@
 package com.kmema.musicapp.activities;
 
 import android.Manifest;
-import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,6 +15,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ActivityDisplaySongs extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
-    public static SeekBar mSeekBar;
+
     private ListOfFavoriteListAdapter mAdapterAlbum;
     private Cursor cursor = null;
     private ListView mListAlbum;
@@ -63,7 +63,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     private MusicService serviceMusic;
     private Intent playIntent;
     private Context context;
-    FloatingActionButton mBtnAddSongs;
+    FloatingActionButton mBtnAddFolder;
     //SQLite Database for storing songs information
     private SQLiteDatabase mDb;
     String albumName = "";
@@ -72,12 +72,13 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     RecyclerView recyclerView;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_display_songs);
 
+        CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.MainActCollapsing_bar);
+        collapsingToolbar.setTitle("MyLiveMusic");
 
         recyclerView = (RecyclerView) findViewById(R.id.all_album_view_rc_list);
 
@@ -115,14 +116,21 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                 final String albumNameToDelete = (String) viewHolder.itemView.getTag(R.string.tag2_name);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(ActivityDisplaySongs.this);
-                builder.setTitle("Delete Album "+albumNameToDelete);
-
+                builder.setTitle("Delete Album " + albumNameToDelete);
                 final int[] choice = {-1};
                 builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        removeAlbumList(id, albumNameToDelete);
+                        boolean deleted = false;
+
+                        deleted = removeAlbumList(id, albumNameToDelete);
+
+                        if (!deleted)
+                            Toast.makeText(ActivityDisplaySongs.this, "PAUSE OR PLAY FROM ALL SONG LIST", Toast.LENGTH_SHORT).show();
+
                         listAlbumAdapter.swapCursor(getAllAlbum());
+
+
                     }
                 });
                 builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
@@ -143,10 +151,10 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
     private void init() {
         getActionBar();
-        mBtnAddSongs = (FloatingActionButton) findViewById(R.id.floatingActionButton2);
+        mBtnAddFolder = (FloatingActionButton) findViewById(R.id.floatingActionButton2);
         mBtnImport = (Button) findViewById(R.id.btn_import_files);
 
-        mBtnAddSongs.setOnClickListener(new View.OnClickListener() {
+        mBtnAddFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -164,7 +172,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         albumName = input.getText().toString();
-               //         Toast.makeText(ActivityDisplaySongs.this, albumName + "YES", Toast.LENGTH_SHORT).show();
+                        //         Toast.makeText(ActivityDisplaySongs.this, albumName + "YES", Toast.LENGTH_SHORT).show();
                         addNewAlbum(albumName);
 
 /*
@@ -195,16 +203,15 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
                 alertDialog1.show();
             }
         });
-        mBtnImport.setOnClickListener(this);
 
+
+        mBtnImport.setOnClickListener(this);
     }
 
 
     private void addNewAlbum(String albumName) {
-
         if (albumName != null && !albumName.isEmpty()) {
-            if(checkPreviousAlbumName(albumName))
-            {
+            if (checkPreviousAlbumName(albumName)) {
                 Toast.makeText(this, "No Duplicate Album", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -219,8 +226,7 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     }
 
 
-    public boolean checkPreviousAlbumName(String albumName)
-    {
+    public boolean checkPreviousAlbumName(String albumName) {
         Cursor c = mDb.query(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
                 new String[]{FavoriteDatabase.ListOfTable._ID,
                         FavoriteDatabase.ListOfTable.COLUMN_LIST_NAME},
@@ -238,15 +244,36 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
     }
 
 
+    public boolean checkFolder(String foldeNameToDelete) {
+        Cursor c = mDb.query(FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG,
+                new String[]{FavoriteDatabase.currentSongData._ID,
+                        FavoriteDatabase.currentSongData.COLUMN_CURRENT_SONG_NAME},
+                FavoriteDatabase.currentSongData.COLUMN_CURRENT_FOLDER_NAME +" = ? ",
+                new String[]{foldeNameToDelete},
+                null,
+                null,
+                FavoriteDatabase.currentSongData._ID);
+
+        if (c.getCount() > 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     private boolean removeAlbumList(long id, String albumNameToDelete) {
 
-        try {
-            mDb.delete(FavoriteDatabase.connectionTableSong.TABLE_NAME_TAG,
-                    FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME +" = ?",new String[] {albumNameToDelete});
-                 }catch (Exception e){
+        if (!checkFolder(albumNameToDelete)) {
+            try {
+                mDb.delete(FavoriteDatabase.connectionTableSong.TABLE_NAME_TAG,
+                        FavoriteDatabase.connectionTableSong.COLUMN_LIST_NAME + " = ?", new String[]{albumNameToDelete});
+            } catch (Exception e) {
+            }
+            return mDb.delete(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
+                    FavoriteDatabase.ListOfTable._ID + "=" + id, null) > 0;
         }
-        return mDb.delete(FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS,
-                FavoriteDatabase.ListOfTable._ID + "=" + id, null) > 0;
+        return false;
     }
 
     private Cursor getAllAlbum() {
@@ -345,34 +372,29 @@ public class ActivityDisplaySongs extends AppCompatActivity implements View.OnCl
 
                         String songArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
 
-                        if(songArtist!=null)
+                        if (songArtist != null)
                             song.setSongArtist(songArtist);
                         else
                             song.setSongArtist("No Info");
 
 
                         Cursor c = managedQuery(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                                new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums.ARTIST},
+                                new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums.ARTIST},
                                 MediaStore.Audio.Albums._ID + "=?",
-                                new String[] {String.valueOf(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)))},
+                                new String[]{String.valueOf(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)))},
                                 null);
 
-                        if(c.getCount()>0)
-                        {
-                            if(c.moveToFirst())
-                            {
+                        if (c.getCount() > 0) {
+                            if (c.moveToFirst()) {
                                 String coverPath = null;
-                                      coverPath = c.getString(c.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-                                if(coverPath!=null)
-                                {
-                                    Log.i("PATH::::",coverPath);
+                                coverPath = c.getString(c.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                                if (coverPath != null) {
+                                    Log.i("PATH::::", coverPath);
                                     song.setAlbumArt(coverPath);
                                 }
 
                             }
-                        }
-                        else
-                        {
+                        } else {
                             Toast.makeText(this, "NULL C", Toast.LENGTH_SHORT).show();
                         }
 

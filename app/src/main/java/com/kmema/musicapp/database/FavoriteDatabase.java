@@ -30,4 +30,12 @@ public class FavoriteDatabase {
         public static final String COLUMN_SONG_ARTWOTK = "songAlbumArt";
         public static final String COLUMN_SONG_ARTIST = "songArtist";
     }
+
+
+    public static final class currentSongData  implements BaseColumns {
+        public static  final String TABLE_NAME_CURRENT_SONG = "CurrentSongTable";
+        public static final String COLUMN_CURRENT_SONG_NAME = "CurrentSongName";
+        public static final String COLUMN_CURRENT_SONG_ALBUM_NAME = "CurrentSongAlbumName";
+        public static final String COLUMN_CURRENT_FOLDER_NAME = "CurrentFolderName";
+    }
 }

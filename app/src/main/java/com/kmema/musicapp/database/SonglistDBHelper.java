@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class SonglistDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "songList.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 9;
 
     public SonglistDBHelper(Context context)
     {
@@ -46,9 +46,19 @@ public class SonglistDBHelper extends SQLiteOpenHelper {
                 FavoriteDatabase.connectionTableSong.COLUMN_SONG_ARTIST + " TEXT NOT NULL" +
                 ");";
 
+
+        final String SQL_CREATE_CURRENT_SONG = "CREATE TABLE " +
+                FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG + "(" +
+                FavoriteDatabase.currentSongData._ID + " INTEGER PRIMARY KEY," +
+                FavoriteDatabase.currentSongData.COLUMN_CURRENT_SONG_NAME + " TEXT NOT NULL," +
+                FavoriteDatabase.currentSongData.COLUMN_CURRENT_SONG_ALBUM_NAME + " TEXT NOT NULL," +
+                FavoriteDatabase.currentSongData.COLUMN_CURRENT_FOLDER_NAME + " TEXT " +
+                ");";
+
         db.execSQL(SQL_CREATE_TABLE_LIST);
         db.execSQL(SQL_CREATE_SONGS_LIST);
         db.execSQL(SQL_CREATE_TAG_LIST);
+        db.execSQL(SQL_CREATE_CURRENT_SONG);
     }
 
     @Override
@@ -57,6 +67,7 @@ public class SonglistDBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+ FavoriteDatabase.ListOfTable.TABLE_NAME_FAV_LISTS);
         db.execSQL("DROP TABLE IF EXISTS "+ FavoriteDatabase.ListofSongs.TABLE_NAME_SONG_LIST);
         db.execSQL("DROP TABLE IF EXISTS "+ FavoriteDatabase.connectionTableSong.TABLE_NAME_TAG);
+        db.execSQL("DROP TABLE IF EXISTS "+ FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG);
         onCreate(db);
     }
 }

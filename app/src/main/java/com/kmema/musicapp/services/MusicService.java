@@ -4,36 +4,46 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import com.amitshekhar.DebugDB;
 import com.kmema.musicapp.R;
 import com.kmema.musicapp.activities.SongList;
+import com.kmema.musicapp.database.FavoriteDatabase;
+import com.kmema.musicapp.database.SonglistDBHelper;
 import com.kmema.musicapp.helper.Song;
 
 import java.util.ArrayList;
+import java.util.logging.Handler;
 
 
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,
+        AudioManager.OnAudioFocusChangeListener {
 
-    String songNameToDisplay =null;
+    String FolderName = null;
+    String songNameToDisplay = null;
     Context songClassContext;
     private MediaPlayer mPlayer;
     private Uri mSongUri;
-
+    SQLiteDatabase mDb;
     private ArrayList<Song> mListSongs;
     private int SONG_POS = 0;
-
     private final IBinder musicBind = new PlayerBinder();
 
     private final String ACTION_STOP = "com.acadgild.musicapp.STOP";
@@ -52,6 +62,61 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private Notification.Builder notificationBuilder;
     private Notification mNotification;
     private String imageLink;
+    TelephonyManager mgr;
+    PhoneStateListener phoneStateListener;
+    private AudioManager mAudioManager;
+
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        SonglistDBHelper songlistDBHelper = new SonglistDBHelper(this);
+        mDb = songlistDBHelper.getWritableDatabase();
+
+
+        //Initializing the media player object
+        mPlayer = new MediaPlayer();
+        initPlayer();
+        mPlayer.setOnPreparedListener(this);
+        mPlayer.setOnCompletionListener(this);
+        mPlayer.setOnErrorListener(this);
+        notificationBuilder = new Notification.Builder(getApplicationContext());
+
+        phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                if (state == TelephonyManager.CALL_STATE_RINGING) {
+                    mPlayer.pause();
+                } else if (state == TelephonyManager.CALL_STATE_IDLE) {
+                    mPlayer.start();
+                    //Not in call: Play music
+                } else if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
+                    mPlayer.start();
+                    //A call is dialing, active or on hold
+                }
+                super.onCallStateChanged(state, incomingNumber);
+            }
+        };
+        mgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        if (mgr != null) {
+            mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+    }
+
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+
+        if (focusChange <= 0) {
+            mPlayer.pause();
+        } else {
+            mPlayer.start();
+            //GAIN -> PLAY
+        }
+    }
 
     public class PlayerBinder extends Binder {//Service connection to play in background
 
@@ -67,17 +132,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return musicBind;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        //Initializing the media player object
-        mPlayer = new MediaPlayer();
-        initPlayer();
-        mPlayer.setOnPreparedListener(this);
-        mPlayer.setOnCompletionListener(this);
-        mPlayer.setOnErrorListener(this);
-        notificationBuilder = new Notification.Builder(getApplicationContext());
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -104,6 +158,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public boolean onUnbind(Intent intent) {
         //Stop the Mediaplayer
         stopSong();
+        if (mgr != null) {
+            mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
+
+        mAudioManager.abandonAudioFocus(this);
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(NOTIFICATION_ID);
@@ -127,7 +186,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         } catch (Exception e) {
             Log.e("MUSIC SERVICE", "Error setting data source", e);
         }
-        mPlayer.prepareAsync();
+        //mPlayer.prepareAsync();
     }
 
     @Override
@@ -145,7 +204,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
 
-    public void startSong(Uri songuri, String songName,int SONG_POS) {
+    public void startSong(Uri songuri, String songName, int SONG_POS) {
         //Set data & start playing music
         mPlayer.reset();
         mState = STATE_PLAYING;
@@ -157,8 +216,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
         mPlayer.prepareAsync();
         updateNotification(songName);
-        songNameToDisplay =songName;
+        songNameToDisplay = songName;
         imageLink = mListSongs.get(SONG_POS).getAlbumArt();
+
     }
 
 
@@ -167,39 +227,92 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (mState == STATE_PAUSED) {
             mState = STATE_PLAYING;
             mPlayer.start();
+
         } else {
             mState = STATE_PAUSED;
+            setNoSongIsPlaying();
             mPlayer.pause();
         }
     }
 
+    public void setNoSongIsPlaying() {
+        mDb.delete(FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG,
+                "_id = ?", new String[]{String.valueOf(1)});
+    }
+
     public void stopSong() {
+        if (mgr != null) {
+            mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
         mPlayer.stop();
+
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(NOTIFICATION_ID);
         System.exit(0);
     }
+
+
+    public boolean checkSize() {
+        Cursor c = mDb.query(FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG,
+                new String[]{FavoriteDatabase.currentSongData._ID,
+                        FavoriteDatabase.currentSongData.COLUMN_CURRENT_SONG_NAME},
+                null,
+                null,
+                null,
+                null,
+                FavoriteDatabase.currentSongData._ID);
+
+        if (c != null && c.getCount() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void rememberCurrentSong() {
+        ContentValues cv = new ContentValues();
+        cv.put(FavoriteDatabase.currentSongData.COLUMN_CURRENT_SONG_NAME, mListSongs.get(SONG_POS).getSongName());
+        cv.put(FavoriteDatabase.currentSongData.COLUMN_CURRENT_SONG_ALBUM_NAME, mListSongs.get(SONG_POS).getSongAlbumName());
+        cv.put(FavoriteDatabase.currentSongData.COLUMN_CURRENT_FOLDER_NAME, FolderName);
+        mDb.beginTransaction();
+        if (!checkSize()) {
+            mDb.insert(FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG, null, cv);
+        } else {
+            String selection = "_id = ?";
+            mDb.update(FavoriteDatabase.currentSongData.TABLE_NAME_CURRENT_SONG, cv, selection, new String[]
+                    {
+                            String.valueOf(1)
+                    });
+
+        }
+        mDb.setTransactionSuccessful();
+        mDb.endTransaction();
+        DebugDB.getAddressLog();
+    }
+
 
     public void nextSong() {
         if (SONG_POS > mListSongs.size()) {
             SONG_POS = 0;
         }
         try {
-            startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName(),SONG_POS+1);
+            startSong(Uri.parse(mListSongs.get(SONG_POS + 1).getSongUri()), mListSongs.get(SONG_POS + 1).getSongName(), SONG_POS + 1);
             SONG_POS++;
+            rememberCurrentSong();
         } catch (Exception e) {
             Toast.makeText(this, "No Next Song", Toast.LENGTH_SHORT).show();
-            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(),SONG_POS);
+            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(), SONG_POS);
         }
     }
 
     public void previousSong() {
         try {
-            startSong(Uri.parse(mListSongs.get(SONG_POS - 1).getSongUri()), mListSongs.get(SONG_POS - 1).getSongName(),SONG_POS-1);
+            startSong(Uri.parse(mListSongs.get(SONG_POS - 1).getSongUri()), mListSongs.get(SONG_POS - 1).getSongName(), SONG_POS - 1);
             SONG_POS--;
+            rememberCurrentSong();
         } catch (Exception e) {
             Toast.makeText(this, "No previous Song", Toast.LENGTH_SHORT).show();
-            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(),SONG_POS);
+            startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(), SONG_POS);
         }
     }
 
@@ -208,19 +321,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
 
-
     /*public void setSongList(ArrayList<Song> listSong, int pos, int notification_id) {
         mListSongs = listSong;
         SONG_POS = pos;
         NOTIFICATION_ID = notification_id;
     }*/
 
-    public void setSelectedSong(int pos, int notification_id,Context context) {
+    public void setSelectedSong(int pos, int notification_id, Context context) {
         SONG_POS = pos;
         NOTIFICATION_ID = notification_id;
         setSongURI(Uri.parse(mListSongs.get(SONG_POS).getSongUri()));
         showNotification();
-        startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(),SONG_POS);
+        startSong(Uri.parse(mListSongs.get(SONG_POS).getSongUri()), mListSongs.get(SONG_POS).getSongName(), SONG_POS);
+        rememberCurrentSong();
     }
 
     public void setSongList(ArrayList<Song> listSong) {
@@ -269,8 +382,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         notificationManager.notify(NOTIFICATION_ID, mNotification);
     }
 
-    public String[] getsongName()
-    {
-        return new String[]{songNameToDisplay,imageLink};
+    public String[] getsongName() {
+        return new String[]{songNameToDisplay, imageLink};
+    }
+
+    public void setFolderName(String FolderName) {
+        this.FolderName = FolderName;
     }
 }
